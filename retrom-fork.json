@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "forkRepository": "https://github.com/retrom-project/SamCoupeWeb",
+  "defaultBranch": "retrom/g6593bda81983",
+  "upstreamMirrorBranch": "main",
+  "upstreams": [
+    {
+      "role": "core",
+      "repository": "https://github.com/anomixer/SamCoupeWeb",
+      "refType": "COMMIT",
+      "ref": "6593bda819830c07bd48e0dffd32d3b3ef525fb0",
+      "commit": "6593bda819830c07bd48e0dffd32d3b3ef525fb0"
+    }
+  ],
+  "adapterAbi": "samcoupe-web-v1",
+  "releaseAssets": [
+    "samcoupeweb-wasm.data",
+    "LICENSE",
+    "source.tar.gz",
+    "rpg-runtime-release.json"
+  ]
+}

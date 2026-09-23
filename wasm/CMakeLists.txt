@@ -24,6 +24,7 @@ endif()
 
 set(BUILD_BACKEND "auto" CACHE STRING "Back-end framework for video/sound/input")
 set_property(CACHE BUILD_BACKEND PROPERTY STRINGS auto win32 sdl)
+option(RETROM_BROWSER_CANDIDATE "Build without bundled machine or speech ROMs" OFF)
 
 set(ORIG_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
@@ -87,6 +88,9 @@ set(BASE_RUNTIME_FILES
     ${ORIG_SRC_DIR}/Resource/atom.rom ${ORIG_SRC_DIR}/Resource/atomlite.rom ${ORIG_SRC_DIR}/Resource/samcoupe.rom ${ORIG_SRC_DIR}/Resource/sp0256-al2.bin
     ${ORIG_SRC_DIR}/Resource/samports.map ${ORIG_SRC_DIR}/Resource/samrom.map ${ORIG_SRC_DIR}/Resource/samdos2.map ${ORIG_SRC_DIR}/Resource/samdos2.sbt
     ${ORIG_SRC_DIR}/Resource/SimCoupe.bmp)
+if (RETROM_BROWSER_CANDIDATE)
+  list(FILTER BASE_RUNTIME_FILES EXCLUDE REGEX "(atom|atomlite|samcoupe)\\.rom$|sp0256-al2\\.bin$")
+endif()
 
 set(SOURCE_FILES ${BASE_CPP_FILES} ${BASE_C_FILES})
 set(HEADER_FILES ${BASE_H_FILES})
@@ -230,7 +234,16 @@ if (EMSCRIPTEN)
     "-sINITIAL_MEMORY=134217728"
     "-sSTACK_SIZE=5242880"
   )
-  target_link_options(${PROJECT_NAME} PRIVATE "--preload-file" "${ORIG_SRC_DIR}/Resource@/Resource")
+  if (RETROM_BROWSER_CANDIDATE)
+    set(RETROM_RESOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/retrom-resource")
+    file(MAKE_DIRECTORY "${RETROM_RESOURCE_DIR}")
+    foreach(resource IN ITEMS samports.map samrom.map samdos2.map samdos2.sbt SimCoupe.bmp)
+      configure_file("${ORIG_SRC_DIR}/Resource/${resource}" "${RETROM_RESOURCE_DIR}/${resource}" COPYONLY)
+    endforeach()
+    target_link_options(${PROJECT_NAME} PRIVATE "--preload-file" "${RETROM_RESOURCE_DIR}@/Resource")
+  else()
+    target_link_options(${PROJECT_NAME} PRIVATE "--preload-file" "${ORIG_SRC_DIR}/Resource@/Resource")
+  endif()
   target_link_options(${PROJECT_NAME} PRIVATE "-sEXPORTED_FUNCTIONS=['_main','_EMS_InsertDisk','_EMS_InsertTape','_EMS_Reset','_EMS_Boot','_EMS_GetFPS','_EMS_SetAudioEnabled','_EMS_StartAudio','_EMS_EjectDisk','_EMS_EjectTape','_EMS_DoAction','_EMS_GetLastWavPath','_EMS_GetLastGifPath','_EMS_GetLastPngPath','_EMS_GetLastAviPath','_EMS_GetOption','_EMS_SetOption','_EMS_IsDiskModified','_EMS_ClearDiskModified','_EMS_FlushDisk']")
   target_link_options(${PROJECT_NAME} PRIVATE "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','addFunction','removeFunction']")
   target_link_options(${PROJECT_NAME} PRIVATE "-sEXIT_RUNTIME=1")
